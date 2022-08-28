@@ -1,30 +1,47 @@
 import React from 'react';
 import { useSelector, useDispatch } from 'react-redux';
+import { Link } from 'react-router-dom';
 
-import { addItem } from '../../redux/slices/cartSlice';
+import { cartItemsSameIdSelector } from '../../redux/cart/selectors';
+import { addItem } from '../../redux/cart/slice';
+import { CartItem } from '../../redux/cart/types';
 
 const typeNames = ['тонкое', 'традиционное'];
 
-function PizzaBlock({ id, title, price, imageUrl, sizes, types }) {
-  const dispatch = useDispatch();
+type PizzaBlockProps = {
+  id: string;
+  title: string;
+  price: number;
+  imageUrl: string;
+  sizes: number[];
+  types: number[];
+};
 
-  // const cartItem = useSelector((state) => state.cart.items.find((obj) => obj.id === id));
-  // const addedCount = cartItem ? cartItem.count : 0;
+export const PizzaBlock: React.FC<PizzaBlockProps> = ({
+  id,
+  title,
+  price,
+  imageUrl,
+  sizes,
+  types,
+}) => {
+  const dispatch = useDispatch();
 
   const [activeType, setActiveType] = React.useState(0);
   const [activeSize, setActiveSize] = React.useState(0);
 
-  const cartItemsSameId = useSelector((state) => state.cart.items.filter((obj) => obj.id === id));
-  const addedCountSameId = cartItemsSameId.reduce((sum, item) => sum + item.count, 0);
+  const cartItemsSameId = useSelector(cartItemsSameIdSelector(id));
+  const addedCountSameId = cartItemsSameId.reduce((sum: number, item: any) => sum + item.count, 0);
 
   const onClickAdd = () => {
-    const item = {
+    const item: CartItem = {
       id,
       title,
       price,
       imageUrl,
       type: typeNames[activeType],
       size: sizes[activeSize],
+      count: 0,
     };
     dispatch(addItem(item));
   };
@@ -32,8 +49,10 @@ function PizzaBlock({ id, title, price, imageUrl, sizes, types }) {
   return (
     <div className="pizza-block-wrapper">
       <div className="pizza-block">
-        <img className="pizza-block__image" src={imageUrl} alt="Pizza" />
-        <h4 className="pizza-block__title">{title}</h4>
+        <Link to={`/pizza/${id}`}>
+          <img className="pizza-block__image" src={imageUrl} alt="Pizza" />
+          <h4 className="pizza-block__title">{title}</h4>
+        </Link>
         <div className="pizza-block__selector">
           <ul>
             {types.map((typeId, index) => (
@@ -77,6 +96,4 @@ function PizzaBlock({ id, title, price, imageUrl, sizes, types }) {
       </div>
     </div>
   );
-}
-
-export default PizzaBlock;
+};

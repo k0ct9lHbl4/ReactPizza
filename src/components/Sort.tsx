@@ -1,29 +1,45 @@
 import React from 'react';
-import { useSelector, useDispatch } from 'react-redux';
-import { setSortType } from '../redux/slices/filterSlice';
+import { useDispatch } from 'react-redux';
 
-export const list = [
-  { name: 'популярности', sortProperty: 'rating' },
-  { name: 'цене (возрастанию)', sortProperty: '-price' },
-  { name: 'цене (убыванию)', sortProperty: 'price' },
-  { name: 'алфавиту', sortProperty: '-title' },
+import { setSortType } from '../redux/filter/slice';
+import { Sort as SortType, sortPropertyEnum } from '../redux/filter/types';
+
+type SortListItem = {
+  name: string;
+  sortProperty: sortPropertyEnum;
+};
+
+type SortPopupProps = {
+  value: SortType;
+};
+
+export const sortList: SortListItem[] = [
+  { name: 'популярности', sortProperty: sortPropertyEnum.RATING },
+  { name: 'цене (возрастанию)', sortProperty: sortPropertyEnum.PRICE_ASC },
+  { name: 'цене (убыванию)', sortProperty: sortPropertyEnum.PRICE_DESC },
+  { name: 'алфавиту', sortProperty: sortPropertyEnum.TITLE },
 ];
 
-function Sort() {
+export const Sort: React.FC<SortPopupProps> = React.memo(({ value }) => {
   const dispatch = useDispatch();
-  const sort = useSelector((state) => state.filter.sortType);
-  const sortRef = React.useRef();
+  const sortRef = React.useRef<HTMLDivElement>(null);
 
   const [isVisible, setIsVisible] = React.useState(false);
 
-  const onClickPopupItem = (obj) => {
+  const onClickPopupItem = (obj: SortListItem) => {
     dispatch(setSortType(obj));
     setIsVisible(false);
   };
 
+  type PopupClickOutside = MouseEvent & {
+    path: Node[];
+  };
+
   React.useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (!event.path.includes(sortRef.current)) {
+    const handleClickOutside = (event: MouseEvent) => {
+      const _event = event as PopupClickOutside;
+
+      if (sortRef.current && !_event.path.includes(sortRef.current)) {
         setIsVisible(false);
       }
     };
@@ -48,16 +64,16 @@ function Sort() {
           />
         </svg>
         <b>Сортировка по:</b>
-        <span onClick={() => setIsVisible(!isVisible)}>{sort.name}</span>
+        <span onClick={() => setIsVisible(!isVisible)}>{value.name}</span>
       </div>
       {isVisible && (
         <div className="sort__popup">
           <ul>
-            {list.map((obj, index) => (
+            {sortList.map((obj, index) => (
               <li
                 key={index}
                 onClick={() => onClickPopupItem(obj)}
-                className={sort.sortProperty === obj.sortProperty ? 'active' : ''}>
+                className={value.sortProperty === obj.sortProperty ? 'active' : ''}>
                 {obj.name}
               </li>
             ))}
@@ -66,6 +82,4 @@ function Sort() {
       )}
     </div>
   );
-}
-
-export default Sort;
+});

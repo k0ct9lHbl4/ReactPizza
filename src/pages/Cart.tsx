@@ -1,19 +1,24 @@
 import React from 'react';
-import { useSelector, useDispatch } from 'react-redux';
-import { clearItems } from '../redux/slices/cartSlice';
-
 import { Link } from 'react-router-dom';
 
-import CartItem from '../components/CartItem';
-import CartEmpty from '../components/CartEmpty';
+import { useSelector, useDispatch } from 'react-redux';
 
-function Cart() {
+import { cartSelector } from '../redux/cart/selectors';
+import { clearItems } from '../redux/cart/slice';
+
+import { CartItem, CartEmpty, Modal } from '../components';
+
+const Cart: React.FC = () => {
   const dispatch = useDispatch();
-  const { totalPrice, items } = useSelector((state) => state.cart);
-  const totalCount = items.reduce((count, item) => item.count + count, 0);
+  const { totalPrice, items } = useSelector(cartSelector);
+  const totalCount = items.reduce((count: number, item: any) => item.count + count, 0);
+
+  const [openClear, setOpenClear] = React.useState(false);
+  const clickedYes = () => dispatch(clearItems());
+  const clickedNo = () => setOpenClear(false);
 
   const onClickClear = () => {
-    if (window.confirm('Очистить корзину?')) dispatch(clearItems());
+    setOpenClear(true);
   };
 
   if (!items.length) return <CartEmpty />;
@@ -84,10 +89,12 @@ function Cart() {
             </svg>
             <span>Очистить корзину</span>
           </div>
+          {openClear && (
+            <Modal value="Очистить корзину?" clickedYes={clickedYes} clickedNo={clickedNo} />
+          )}
         </div>
         <div className="content__items">
-          {items.map((item) => (
-            // <CartItem key={item.id} {...item} />
+          {items.map((item: any) => (
             <CartItem key={item.id + item.size + item.type} {...item} />
           ))}
         </div>
@@ -127,6 +134,6 @@ function Cart() {
       </div>
     </div>
   );
-}
+};
 
 export default Cart;
